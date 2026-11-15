@@ -11,7 +11,7 @@ load tidyverse and dataset
 ```{r}
 library(tidyverse)
 
-fish_data <- read_csv("../code/Gaeta_etal_CLC_data.csv")
+fish_data <- read_csv("../data/Gaeta_etal_CLC_data.csv")
 
 head(fish_data)
 ```
@@ -24,4 +24,13 @@ min_max_length <- fish_data |>
             max_scale_length = max(scalelength, na.rm = T),
             mean_scale_length = mean(scalelength, na.rm = T))
 
+```
+
+```{r}
+fish_data_clean <- filter(fish_data, scalelength >= 1)
+
+fish_data_clean
+
+write_csv(fish_data_cleaned, "../clean_data/Gaeta_etal_CLC_data_cleaned.csv"
+                          
 ```

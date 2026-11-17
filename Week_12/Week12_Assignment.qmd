@@ -92,12 +92,33 @@ d.  Now use the `case_when` function inside a `mutate` function to create a new 
 library(tidyverse)
 library(lterdatasampler)
 
+#2a
 crab_size <-17
 
-crab_size |> 
-  if_else(crab_size == 20,
-          true = "large",
-          false = "small")
+if_else(crab_size >= 20, "large", "small")
+
+#2b
+case_when(
+  crab_size >= 20 ~ "large",
+  crab_size >= 10 ~ "medium",
+  crab_size < 10 ~ "small"
+)
+
+#2c
+
+head(pie_crab)
+
+pie_crab <- pie_crab |> 
+  mutate(size_category = if_else(size > 20, "large", "small"))
+
+#2d
+
+pie_crab <- pie_crab |> 
+  mutate(size_category3 = case_when(
+    size >= 20 ~ "large",
+    size >= 10 ~ "medium",
+    size < 10 ~ "small"
+  ))
 ```
 
 ### 3. If/Else Statements (20 points)
@@ -105,6 +126,8 @@ crab_size |>
 a.  Complete the following `if` statement so that if `age_class` is equal to "sapling" it sets `y` to 10, if `age_class` is equal to "seedling" it sets `y` to 5, and if `age_class` is something else it sets `y` to 0.
 
 ```{r}
+
+#3a
 age_class <- "sapling"
 
 if (age_class == "sapling") {
@@ -116,11 +139,52 @@ if (age_class == "sapling") {
 }
 
 y
+
+
+
 ```
 
 b.  Convert your conditional statement from (a) into a function that takes `age_class` as an argument and returns `y`. Call this function 5 times, once with each of the following values for `age_class`: "sapling", "seedling", "adult", "mature", "established".
 
 c.  Write a function called `predict_value` that takes a single argument `x`. If `x` is greater than 0 and less than 15, return `y = 6 + 0.8 * x`. If `x` is greater than or equal to 15 and less than 30, return `y = 5 + 0.75 * x`. In all other cases, return `y = NA`. Call the function three times, with `5`, `26`, and `-2` as the input.
+
+```{r}
+#3b
+
+returns_y <- function(age_class) {
+  if(age_class == "sapling") {
+    y <- 10
+  }else if(age_class == "seedling"){
+    y <- 5
+  }else {
+    y <- 0
+  }
+  return(y)
+}
+
+returns_y("sapling")
+returns_y("seedling")
+returns_y("adult")
+returns_y("mature")
+returns_y("established")
+
+#3c
+
+predict_value <- function(x) {
+  if (x > 0 & x < 15) {
+    y <- 6 + 0.8 * x
+  } else if (x >= 15 & x < 30) {
+    y <- 5 + 0.75 * x
+  } else {
+    y <- NA
+  }
+  return(y)
+}
+
+predict_value(5)
+predict_value(26)
+predict_value(-2)
+```
 
 ### 4. Size Estimates by Name (20 points)
 

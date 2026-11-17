@@ -58,7 +58,7 @@ e.  `x` times `w` is between 13.2 and 13.5
 "green" %in% colors
 
 #1b
-"purple" %in% colors
+!("purple") %in% colors
 
 #1c
 masses > 40
@@ -68,6 +68,7 @@ w > x | y > z
 
 #1e
 
+x * w > 13.2 & x * w < 13.5
 ```
 
 ### 2. Using `dplyr` Choice Functions (20 points)
@@ -106,10 +107,12 @@ case_when(
 
 #2c
 
+
 head(pie_crab)
 
 pie_crab <- pie_crab |> 
-  mutate(size_category = if_else(size > 20, "large", "small"))
+  mutate(size_category = if_else(size >= 20, "large", "small"))
+pie_crab
 
 #2d
 
@@ -119,6 +122,8 @@ pie_crab <- pie_crab |>
     size >= 10 ~ "medium",
     size < 10 ~ "small"
   ))
+
+pie_crab
 ```
 
 ### 3. If/Else Statements (20 points)
@@ -213,6 +218,30 @@ b.  A *Theropoda* that is 8 meters long.
 c.  A *Sauropoda* that is 12 meters long.
 d.  An *Ankylosauria* that is 13 meters long.
 
+```{r}
+mass_from_length <- function(length, name){
+  if (name == "Stegosauria"){
+    a <- 10.95
+    b <- 2.64
+  } else if (name == "Theropoda"){
+    a <- 0.73
+    b <- 3.63
+  } else if (name == "Sauropoda"){
+    a <- 214.44
+    b <- 1.46
+  }else{
+    return(NA)
+  }
+  mass <- a * length^b
+  return(mass)
+}
+
+mass_from_length(10, "Stegosauria")
+mass_from_length(8, "Theropoda")
+mass_from_length(12, "Sauropoda")
+mass_from_length(13, "Ankylosauria")
+```
+
 *Challenge 1 (optional)*: If the name is not one of values that have a and b values print warning that it doesn't know how to convert that group that includes that groups name in a message like "No known estimation for Ankylosauria." You can use the function `warning("your warning text")` to print a warning and the function `paste()` to combine text with a value from a variable such as `paste("My name is", name)`. Doing this successfully will modify your answer to (d), which is fine.
 
 *Challenge 2 (optional)*: Change your function so that it uses two different values of `a` and `b` for *Stegosauria*. When *Stegosauria* is greater than 8 meters long use the equation above. When it is 8 meters long or less, use `a = 8.5` and `b = 2.8`. Run the function for a *Stegosauria* that is 6 meters long.
@@ -236,10 +265,9 @@ In this question, you will combine choice functions with joins, strings, and plo
 Download the following Portal data tables using code below (modify the `destfile` arguments to point to the correct sub-directory) to get started.
 
 ```{r}
-# download.file(url = "https://ndownloader.figshare.com/files/2292172",
-#   destfile = "surveys.csv")
-# download.file(url = "https://ndownloader.figshare.com/files/3299483",
-#   destfile = "species.csv")
+download.file(url = "https://ndownloader.figshare.com/files/2292172",   destfile = "surveys.csv")
+download.file(url = "https://ndownloader.figshare.com/files/3299483",
+   destfile = "species.csv")
 ```
 
 a.  Join `surveys` and `species` together so that each survey record has the genus, species, and taxa information. Keep only rodents (`taxa` is "Rodent"). Then, use a `stringr` function to add a column called `scientific_name` that combines `genus` and `species` with a space between them (e.g., "Dipodomys merriami"). Save the result as an object called `rodents`.
@@ -264,6 +292,58 @@ d.  Use `case_when` inside a `mutate` to add a column called `weight_class` with
 e.  Using `rodents`, remove the individuals with an "unknown" weight class and count the number of individuals in each `year`, `season`, and `weight_class`. Then, make a line plot with `year` on the x-axis, the count on the y-axis, lines colored by `weight_class`, and a separate panel for each `season`. Give your plot informative axis labels and use a theme of your choice.
 
     In a sentence or two, describe one pattern you see in the plot.
+
+```{r}
+surveys <- read_csv("surveys.csv")
+species <- read.csv("species.csv")
+
+#5a
+rodents <- surveys |>
+  left_join(species, by = "species_id") |>
+  filter(taxa == "Rodent") |>
+  mutate(scientific_name = str_c(genus, species, sep = " "))
+
+rodents
+
+#5b
+rodents <- rodents |> 
+  mutate(id_level = if_else(str_detect(scientific_name, "sp\\."),
+                            "genus only", "species"))
+
+count(rodents, id_level)
+
+#5c
+rodents <- rodents |> 
+  mutate(season = if_else(month %in% 4:9, "wamr", "cool"))
+
+rodents
+
+#5d
+rodents <- rodents |> 
+  mutate(weight_class = case_when(
+    is.na(weight) ~ "unknown",
+    weight < 20 ~ "small",
+    weight < 50 ~ "medium",
+    .default = "large"
+  ))
+
+rodents
+
+#5e
+
+rodents_counts <- rodents |> 
+  filter(weight_class != "unknown") |> 
+  count(year, season, weight_class)
+
+ggplot(rodents_counts, aes(x = year, y = n, color = weight_class)) +
+  geom_line() +
+  facet_wrap(~ season) +
+  labs(x = "Year", y = "Number of Individuals", color = "Weight Class") +
+  theme_bw()
+
+#If you left out the unknown line, individuals with missing weights would be labeled “large”. Comparisons like weight < 20 gives NA when weight is NA. Case_when treats that as not true, so those rows skip every condition and get the default value.
+  
+```
 
 ### 6. Challenge: A "Safe" Tidyverse Function (OPTIONAL)
 
